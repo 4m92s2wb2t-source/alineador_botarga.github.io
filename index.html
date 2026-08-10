@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alineador de Planos para Botargas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="top-bar">
+        <h1>Alineador de Planos 3 Vistas</h1>
+        <div class="global-controls">
+            <!-- BOTÓN GLOBAL PARA LA CUADRÍCULA -->
+            <label class="btn-upload" style="background-color: #f39c12;">
+                1. Cargar Cuadrícula Base 
+                <input type="file" id="btnCargarFondo" accept="image/*" hidden>
+            </label>
+            
+            <select id="resolucionDpi">
+                <option value="72">Baja Resolución (72 ppp)</option>
+                <option value="300">Alta Resolución (300 ppp)</option>
+            </select>
+            <button id="btnDescargarComposicion" class="btn-primary">⬇️ Descargar Composición Horizontal</button>
+        </div>
+    </header>
+
+    <main class="workspace">
+        
+        <!-- ============================== -->
+        <!-- LIENZO 1: PLANO FRONTAL        -->
+        <!-- ============================== -->
+        <section class="canvas-panel">
+            <h2>Plano Frontal</h2>
+            
+            <div class="image-manager">
+                <!-- Fila Img 1 -->
+                <div class="img-row active" id="rowFrontal1">
+                    <label class="btn-upload">Subir 1 <input type="file" id="imgFrontal1" accept="image/*" hidden></label>
+                    <button class="btn-action btn-activar" id="btnActivarFrontal1">✏️ Editar</button>
+                    <button class="btn-danger" id="btnEliminarFrontal1" title="Eliminar">🗑️</button>
+                    <span class="stats" id="statsFrontal1">Vacío</span>
+                </div>
+                <!-- Fila Img 2 -->
+                <div class="img-row" id="rowFrontal2">
+                    <label class="btn-upload">Subir 2 <input type="file" id="imgFrontal2" accept="image/*" hidden></label>
+                    <button class="btn-action btn-activar" id="btnActivarFrontal2">✏️ Editar</button>
+                    <button class="btn-danger" id="btnEliminarFrontal2" title="Eliminar">🗑️</button>
+                    <span class="stats" id="statsFrontal2">Vacío</span>
+                </div>
+            </div>
+
+            <div class="transform-controls">
+                <button id="btnZoomInFrontal" title="Acercar">➕ Zoom</button>
+                <button id="btnZoomOutFrontal" title="Alejar">➖ Zoom</button>
+                <button id="btnUpFrontal" title="Arriba">⬆️</button>
+                <button id="btnDownFrontal" title="Abajo">⬇️</button>
+                <button id="btnLeftFrontal" title="Izquierda">⬅️</button>
+                <button id="btnRightFrontal" title="Derecha">➡️</button>
+            </div>
+
+            <div class="canvas-wrapper">
+                <!-- MÁXIMA RESOLUCIÓN INTERNA (2400px) -->
+                <canvas id="canvasFrontal" width="2400" height="2400"></canvas>
+            </div>
+            
+            <button class="btn-download-single" id="btnDescargarFrontal">Descargar Frontal</button>
+        </section>
+
+        <!-- ============================== -->
+        <!-- LIENZO 2: PLANO LATERAL        -->
+        <!-- ============================== -->
+        <section class="canvas-panel">
+            <h2>Plano Lateral</h2>
+            
+            <div class="image-manager">
+                <div class="img-row active" id="rowLateral1">
+                    <label class="btn-upload">Subir 1 <input type="file" id="imgLateral1" accept="image/*" hidden></label>
+                    <button class="btn-action btn-activar" id="btnActivarLateral1">✏️ Editar</button>
+                    <button class="btn-danger" id="btnEliminarLateral1" title="Eliminar">🗑️</button>
+                    <span class="stats" id="statsLateral1">Vacío</span>
+                </div>
+                <div class="img-row" id="rowLateral2">
+                    <label class="btn-upload">Subir 2 <input type="file" id="imgLateral2" accept="image/*" hidden></label>
+                    <button class="btn-action btn-activar" id="btnActivarLateral2">✏️ Editar</button>
+                    <button class="btn-danger" id="btnEliminarLateral2" title="Eliminar">🗑️</button>
+                    <span class="stats" id="statsLateral2">Vacío</span>
+                </div>
+            </div>
+
+            <div class="transform-controls">
+                <button id="btnZoomInLateral" title="Acercar">➕ Zoom</button>
+                <button id="btnZoomOutLateral" title="Alejar">➖ Zoom</button>
+                <button id="btnUpLateral" title="Arriba">⬆️</button>
+                <button id="btnDownLateral" title="Abajo">⬇️</button>
+                <button id="btnLeftLateral" title="Izquierda">⬅️</button>
+                <button id="btnRightLateral" title="Derecha">➡️</button>
+            </div>
+
+            <div class="canvas-wrapper">
+                <!-- MÁXIMA RESOLUCIÓN INTERNA (2400px) -->
+                <canvas id="canvasLateral" width="2400" height="2400"></canvas>
+            </div>
+            
+            <button class="btn-download-single" id="btnDescargarLateral">Descargar Lateral</button>
+        </section>
+
+        <!-- ============================== -->
+        <!-- LIENZO 3: PLANO DE ESPALDA     -->
+        <!-- ============================== -->
+        <section class="canvas-panel">
+            <h2>Plano de Espalda</h2>
+            
+            <div class="image-manager">
+                <div class="img-row active" id="rowEspalda1">
+                    <label class="btn-upload">Subir 1 <input type="file" id="imgEspalda1" accept="image/*" hidden></label>
+                    <button class="btn-action btn-activar" id="btnActivarEspalda1">✏️ Editar</button>
+                    <button class="btn-danger" id="btnEliminarEspalda1" title="Eliminar">🗑️</button>
+                    <span class="stats" id="statsEspalda1">Vacío</span>
+                </div>
+                <div class="img-row" id="rowEspalda2">
+                    <label class="btn-upload">Subir 2 <input type="file" id="imgEspalda2" accept="image/*" hidden></label>
+                    <button class="btn-action btn-activar" id="btnActivarEspalda2">✏️ Editar</button>
+                    <button class="btn-danger" id="btnEliminarEspalda2" title="Eliminar">🗑️</button>
+                    <span class="stats" id="statsEspalda2">Vacío</span>
+                </div>
+            </div>
+
+            <div class="transform-controls">
+                <button id="btnZoomInEspalda" title="Acercar">➕ Zoom</button>
+                <button id="btnZoomOutEspalda" title="Alejar">➖ Zoom</button>
+                <button id="btnUpEspalda" title="Arriba">⬆️</button>
+                <button id="btnDownEspalda" title="Abajo">⬇️</button>
+                <button id="btnLeftEspalda" title="Izquierda">⬅️</button>
+                <button id="btnRightEspalda" title="Derecha">➡️</button>
+            </div>
+
+            <div class="canvas-wrapper">
+                <!-- MÁXIMA RESOLUCIÓN INTERNA (2400px) -->
+                <canvas id="canvasEspalda" width="2400" height="2400"></canvas>
+            </div>
+            
+            <button class="btn-download-single" id="btnDescargarEspalda">Descargar Espalda</button>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
