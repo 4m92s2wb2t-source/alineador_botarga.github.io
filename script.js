@@ -290,7 +290,7 @@ vistas.forEach(view => {
             
             lupaScale = Math.max(100, Math.min(lupaScale, 600)); 
             canvas.style.width = `${lupaScale}%`;
-            canvas.style.height = `${lupaScale}%`;
+            canvas.style.height = 'auto'; // El Candado en Javascript
         } else {
             if (!scrollTimeout && hasImg()) saveToHistory();
             clearTimeout(scrollTimeout);
@@ -311,9 +311,6 @@ vistas.forEach(view => {
         drawCanvas(view);
     }
 
-    document.getElementById(`btnZoomIn${view}`).addEventListener('click', () => applyZoom(SCALE_STEP));
-    document.getElementById(`btnZoomOut${view}`).addEventListener('click', () => applyZoom(-SCALE_STEP));
-    
     function moveAction(dx, dy) {
         if (!hasImg()) return;
         saveToHistory();
@@ -323,6 +320,8 @@ vistas.forEach(view => {
         drawCanvas(view);
     }
 
+    document.getElementById(`btnZoomIn${view}`).addEventListener('click', () => applyZoom(SCALE_STEP));
+    document.getElementById(`btnZoomOut${view}`).addEventListener('click', () => applyZoom(-SCALE_STEP));
     document.getElementById(`btnUp${view}`).addEventListener('click', () => moveAction(0, -MOVE_STEP));
     document.getElementById(`btnDown${view}`).addEventListener('click', () => moveAction(0, MOVE_STEP));
     document.getElementById(`btnLeft${view}`).addEventListener('click', () => moveAction(-MOVE_STEP, 0));
@@ -334,18 +333,19 @@ vistas.forEach(view => {
 // ==========================================
 function getResolucionMultiplicador() {
     const selector = document.getElementById('resolucionDpi').value;
-    // El lienzo base ya está en 4K (2400px).
-    // Si elige 300ppp, lo exportamos al tamaño original (x1).
-    // Si elige 72ppp, lo reducimos dividiendo entre 3 (800 / 2400).
     return selector === '300' ? 1 : (800 / 2400); 
 }
 
 function renderExportCanvas(viewCanvasId, viewState, mult) {
     const original = document.getElementById(viewCanvasId);
+    
+    // Eliminamos los decimales usando Math.round para un dibujo perfecto
+    const exportWidth = Math.round(original.width * mult);
+    const exportHeight = Math.round(original.height * mult);
+    
     const tempCanvas = document.createElement('canvas');
-    // Aplicamos el multiplicador correcto sin romper los límites
-    tempCanvas.width = Math.round(original.width * mult); 
-    tempCanvas.height = Math.round(original.height * mult);
+    tempCanvas.width = exportWidth; 
+    tempCanvas.height = exportHeight;
     const ctx = tempCanvas.getContext('2d');
 
     ctx.fillStyle = '#ffffff';
@@ -358,7 +358,14 @@ function renderExportCanvas(viewCanvasId, viewState, mult) {
     [1, 2].forEach(num => {
         const img = viewState[`img${num}`];
         const s = viewState[`s${num}`];
-        if (img) ctx.drawImage(img, s.x * mult, s.y * mult, (s.bw * s.sc) * mult, (s.bh * s.sc) * mult);
+        if (img) {
+            // Posición y tamaño milimétricamente escalados
+            const drawX = Math.round(s.x * mult);
+            const drawY = Math.round(s.y * mult);
+            const drawW = Math.round((s.bw * s.sc) * mult);
+            const drawH = Math.round((s.bh * s.sc) * mult);
+            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+        }
     });
     ctx.globalCompositeOperation = 'source-over';
 
@@ -379,6 +386,7 @@ document.getElementById('btnDescargarFrontal').addEventListener('click', () => d
 document.getElementById('btnDescargarLateral').addEventListener('click', () => descargar('Lateral'));
 document.getElementById('btnDescargarEspalda').addEventListener('click', () => descargar('Espalda'));
 
+// Descargar Composición Horizontal
 document.getElementById('btnDescargarComposicion').addEventListener('click', () => {
     const mult = getResolucionMultiplicador();
     const cf = document.getElementById('canvasFrontal');
