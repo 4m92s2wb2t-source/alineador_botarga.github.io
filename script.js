@@ -1,6 +1,7 @@
 // ==========================================
-// CONFIGURACIÓN GLOBAL Y ESTADO
+// 0. CONSTANTE DE ORO Y ESTADO GLOBAL
 // ==========================================
+const CANVAS_SIZE = 2400; // El tamaño interno inamovible del lienzo
 const MOVE_STEP = 3;     
 const SCALE_STEP = 0.01; 
 let fondoBaseGlobal = null;
@@ -86,7 +87,33 @@ window.addEventListener('keydown', (e) => {
 });
 
 // ==========================================
-// 2. CARGAR CUADRÍCULA GLOBAL
+// 2. FUNCIÓN ANTI-DEFORMACIÓN PARA EL FONDO
+// ==========================================
+// Simula el "background-size: cover" para que la cuadrícula no se aplaste
+function drawCoverImage(ctx, img, renderSize) {
+    const imgRatio = img.width / img.height;
+    const canvasRatio = 1; // Nuestro lienzo siempre es 1:1 cuadrado
+    
+    let drawW = renderSize;
+    let drawH = renderSize;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (imgRatio > canvasRatio) {
+        // La imagen original es más ancha que alta (como tu lienzo3.jpg)
+        drawW = renderSize * imgRatio;
+        offsetX = (renderSize - drawW) / 2; // Centra y recorta los lados
+    } else {
+        // La imagen original es más alta que ancha
+        drawH = renderSize / imgRatio;
+        offsetY = (renderSize - drawH) / 2; // Centra y recorta arriba/abajo
+    }
+    
+    ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+}
+
+// ==========================================
+// 3. CARGAR CUADRÍCULA GLOBAL
 // ==========================================
 document.getElementById('btnCargarFondo').addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -105,22 +132,24 @@ document.getElementById('btnCargarFondo').addEventListener('change', (e) => {
 });
 
 // ==========================================
-// 3. MOTOR DE DIBUJO
+// 4. MOTOR DE DIBUJO E INTERFAZ
 // ==========================================
 function drawCanvas(view) {
     const canvas = document.getElementById(`canvas${view}`);
     const ctx = canvas.getContext('2d');
     
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
     
+    // FONDO PERFECTAMENTE PROPORCIONADO
     ctx.globalCompositeOperation = 'source-over';
     if (fondoBaseGlobal) {
-        ctx.drawImage(fondoBaseGlobal, 0, 0, canvas.width, canvas.height);
+        drawCoverImage(ctx, fondoBaseGlobal, CANVAS_SIZE);
     } else {
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
     }
 
+    // BOCETOS CON EFECTO MULTIPLY
     ctx.globalCompositeOperation = 'multiply';
     [1, 2].forEach(num => {
         const img = state[view][`img${num}`];
@@ -170,7 +199,7 @@ function setActiveImage(view, num) {
 }
 
 // ==========================================
-// 4. INICIALIZAR CONTROLES Y EVENTOS DE RATÓN
+// 5. INICIALIZAR CONTROLES Y EVENTOS DE RATÓN
 // ==========================================
 vistas.forEach(view => {
     const canvas = document.getElementById(`canvas${view}`);
@@ -187,8 +216,10 @@ vistas.forEach(view => {
                     state[view][`img${num}`] = img;
                     const s = state[view][`s${num}`];
                     s.bw = img.width; s.bh = img.height; s.sc = 1;
-                    s.x = (canvas.width - s.bw) / 2;
-                    s.y = canvas.height - s.bh; 
+                    
+                    s.x = (CANVAS_SIZE - s.bw) / 2; // Usa constante de oro
+                    s.y = CANVAS_SIZE - s.bh; 
+                    
                     setActiveImage(view, num);
                 }
                 img.src = event.target.result;
@@ -218,8 +249,8 @@ vistas.forEach(view => {
         if (!hasImg()) return;
         
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        const scaleX = CANVAS_SIZE / rect.width; // Usa constante de oro
+        const scaleY = CANVAS_SIZE / rect.height;
         
         const mouseX = (e.clientX - rect.left) * scaleX;
         const mouseY = (e.clientY - rect.top) * scaleY;
@@ -247,8 +278,8 @@ vistas.forEach(view => {
     canvas.addEventListener('mousemove', (e) => {
         if (!hasImg()) return;
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        const scaleX = CANVAS_SIZE / rect.width;
+        const scaleY = CANVAS_SIZE / rect.height;
         
         const mouseX = (e.clientX - rect.left) * scaleX;
         const mouseY = (e.clientY - rect.top) * scaleY;
@@ -290,7 +321,7 @@ vistas.forEach(view => {
             
             lupaScale = Math.max(100, Math.min(lupaScale, 600)); 
             canvas.style.width = `${lupaScale}%`;
-            canvas.style.height = 'auto'; // El Candado en Javascript
+            canvas.style.height = 'auto';
         } else {
             if (!scrollTimeout && hasImg()) saveToHistory();
             clearTimeout(scrollTimeout);
@@ -329,29 +360,28 @@ vistas.forEach(view => {
 });
 
 // ==========================================
-// 5. EXPORTACIÓN LIMPIA Y MULTIPLICADOR DPI
+// 6. EXPORTACIÓN BLINDADA (SIN LEER HTML)
 // ==========================================
 function getResolucionMultiplicador() {
     const selector = document.getElementById('resolucionDpi').value;
-    return selector === '300' ? 1 : (800 / 2400); 
+    return selector === '300' ? 1 : (800 / CANVAS_SIZE); 
 }
 
-function renderExportCanvas(viewCanvasId, viewState, mult) {
-    const original = document.getElementById(viewCanvasId);
-    
-    // Eliminamos los decimales usando Math.round para un dibujo perfecto
-    const exportWidth = Math.round(original.width * mult);
-    const exportHeight = Math.round(original.height * mult);
+function renderExportCanvas(viewState, mult) {
+    // Calculamos el tamaño final basado 100% en la constante matemática
+    const exportSize = Math.round(CANVAS_SIZE * mult); 
     
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = exportWidth; 
-    tempCanvas.height = exportHeight;
+    tempCanvas.width = exportSize; 
+    tempCanvas.height = exportSize;
     const ctx = tempCanvas.getContext('2d');
 
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    ctx.fillRect(0, 0, exportSize, exportSize);
+    
     if (fondoBaseGlobal) {
-        ctx.drawImage(fondoBaseGlobal, 0, 0, tempCanvas.width, tempCanvas.height);
+        // Usamos la nueva función anti-deformación para dibujar el fondo
+        drawCoverImage(ctx, fondoBaseGlobal, exportSize);
     }
 
     ctx.globalCompositeOperation = 'multiply';
@@ -359,7 +389,6 @@ function renderExportCanvas(viewCanvasId, viewState, mult) {
         const img = viewState[`img${num}`];
         const s = viewState[`s${num}`];
         if (img) {
-            // Posición y tamaño milimétricamente escalados
             const drawX = Math.round(s.x * mult);
             const drawY = Math.round(s.y * mult);
             const drawW = Math.round((s.bw * s.sc) * mult);
@@ -374,7 +403,8 @@ function renderExportCanvas(viewCanvasId, viewState, mult) {
 
 function descargar(view) {
     const mult = getResolucionMultiplicador();
-    const exportCanvas = renderExportCanvas(`canvas${view}`, state[view], mult);
+    // Le pasamos solo el estado matemático, ya no leemos la etiqueta <canvas>
+    const exportCanvas = renderExportCanvas(state[view], mult);
     
     const enlace = document.createElement('a');
     enlace.download = `Botarga_Vista_${view}.jpg`;
@@ -386,22 +416,21 @@ document.getElementById('btnDescargarFrontal').addEventListener('click', () => d
 document.getElementById('btnDescargarLateral').addEventListener('click', () => descargar('Lateral'));
 document.getElementById('btnDescargarEspalda').addEventListener('click', () => descargar('Espalda'));
 
-// Descargar Composición Horizontal
 document.getElementById('btnDescargarComposicion').addEventListener('click', () => {
     const mult = getResolucionMultiplicador();
-    const cf = document.getElementById('canvasFrontal');
     
-    const baseWidth = Math.round(cf.width * mult); 
-    const baseHeight = Math.round(cf.height * mult); 
+    // Tamaños basados en constante
+    const baseWidth = Math.round(CANVAS_SIZE * mult); 
+    const baseHeight = Math.round(CANVAS_SIZE * mult); 
 
     const comp = document.createElement('canvas');
     comp.width = baseWidth * 3;
     comp.height = baseHeight;
     const ctx = comp.getContext('2d');
 
-    const expF = renderExportCanvas('canvasFrontal', state['Frontal'], mult);
-    const expL = renderExportCanvas('canvasLateral', state['Lateral'], mult);
-    const expE = renderExportCanvas('canvasEspalda', state['Espalda'], mult);
+    const expF = renderExportCanvas(state['Frontal'], mult);
+    const expL = renderExportCanvas(state['Lateral'], mult);
+    const expE = renderExportCanvas(state['Espalda'], mult);
 
     ctx.drawImage(expF, 0, 0);
     ctx.drawImage(expL, baseWidth, 0);
