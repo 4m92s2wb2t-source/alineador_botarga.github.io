@@ -134,19 +134,21 @@ body {
     font-weight: bold;
 }
 
-/* EL CONTENEDOR DEL LIENZO (Ahora permite scroll si la lupa está activa) */
+/* EL CONTENEDOR DEL LIENZO */
 .canvas-wrapper {
     width: 100%;
     aspect-ratio: 1 / 1; 
     border: 2px solid #34495e;
     position: relative;
-    overflow: auto; /* <- La magia para moverte con la lupa */
+    overflow: auto; /* Permite scroll para la lupa */
     background-color: #ffffff;
 }
 
+/* EL CANDADO DE PROPORCIÓN */
 canvas {
     width: 100%;
-    height: 100%;
+    height: auto; /* Esto evita que el scroll aplaste el lienzo */
+    aspect-ratio: 1 / 1; /* Fuerza a que sea SIEMPRE cuadrado en pantalla */
     display: block;
     transform-origin: top left;
 }
